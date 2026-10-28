@@ -1,0 +1,31 @@
+name: 20-VM-5Hour-1000-AI-Frontier-Tournament
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'launch_1000ai_signal.json'
+      - '.github/workflows/arena_20vm.yml'
+jobs:
+  frontier-1000ai-vm-cluster:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300 # 5 Hours per VM
+    strategy:
+      fail-fast: false
+      max-parallel: 20   # 20 Concurrent Public VMs x 50 AIs/VM = 1,000 AIs!
+      matrix:
+        vm_id: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Real 1000-AI Evaluation & TTS Stack
+        run: python -m pip install -q --upgrade pip && python -m pip install -q datasets huggingface_hub requests edge-tts psutil numpy
+      - name: Run 5-Hour 1000-AI Distributed Tournament (50 AIs per VM x 20 VMs)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          VM_ID: ${{ matrix.vm_id }}
+          PYTHONUNBUFFERED: "1"
+        run: python -u vm_1000ai_worker.py
